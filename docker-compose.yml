@@ -46,6 +46,9 @@ services:
     restart: unless-stopped
     depends_on:
       - server
+    environment:
+      # Where nginx forwards /api requests (backend service name + port).
+      API_UPSTREAM: server:${PORT}
     ports:
       - "${WEB_PORT}:80"
 

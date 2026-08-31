@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-100 text-slate-900 antialiased;
+}
+
+/* Thin scrollbars for the horizontal board area */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-slate-300;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
