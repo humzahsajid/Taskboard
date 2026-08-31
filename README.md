@@ -230,6 +230,7 @@ hardcoded. Key values:
 | `DATABASE_URL` | Full connection string the backend uses. |
 | `JWT_SECRET` | Secret used to sign login sessions — **change this**. |
 | `JWT_EXPIRES_IN` | How long a login lasts (e.g. `7d`). |
+| `COOKIE_SECURE` | `false` for local HTTP; `true` only when served over HTTPS. |
 | `PORT` | Backend API port (default `4000`). |
 | `WEB_PORT` | Port you open in the browser (default `8080`). |
 | `CLIENT_ORIGIN` | Allowed browser origin for CORS. |

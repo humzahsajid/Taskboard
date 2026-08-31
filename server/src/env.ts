@@ -14,6 +14,13 @@ const schema = z.object({
     .string()
     .min(16, "JWT_SECRET must be at least 16 characters — set a long random value"),
   JWT_EXPIRES_IN: z.string().default("7d"),
+  // Set to true only when the app is served over HTTPS (e.g. a real deployment).
+  // Local Docker runs over plain HTTP on localhost, so this must stay false there
+  // or the browser will refuse to store/send the auth cookie.
+  COOKIE_SECURE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
   CLIENT_ORIGIN: z.string().default("http://localhost:8080"),
   SEED_DEMO_EMAIL: z.string().email().default("demo@example.com"),
   SEED_DEMO_PASSWORD: z.string().min(6).default("demo1234"),

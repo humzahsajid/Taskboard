@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import type { Response } from "express";
-import { env, isProd } from "../env";
+import { env } from "../env";
 
 const COOKIE_NAME = "token";
 
@@ -39,7 +39,7 @@ export function verifyToken(token: string): TokenPayload | null {
 export function setAuthCookie(res: Response, token: string): void {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: isProd,
+    secure: env.COOKIE_SECURE,
     sameSite: "lax",
     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     path: "/",

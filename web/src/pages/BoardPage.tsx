@@ -28,7 +28,8 @@ import { BoardColumn } from "../components/BoardColumn";
 import { CardCardContent } from "../components/CardTile";
 import { CardModal } from "../components/CardModal";
 import { MembersModal } from "../components/MembersModal";
-import { EMPTY_FILTERS, FilterBar, Filters, isFiltering } from "../components/FilterBar";
+import { EMPTY_FILTERS, FilterBar, isFiltering } from "../components/FilterBar";
+import type { Filters } from "../components/FilterBar";
 
 export default function BoardPage() {
   const { boardId = "" } = useParams();
