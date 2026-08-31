@@ -19,9 +19,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    # Exposed on localhost:5432 so you can inspect the DB with a tool if you want.
-    ports:
-      - "5432:5432"
+    # The database is only reachable by the other containers (not published to
+    # your machine) to avoid clashing with any Postgres you already run.
 
   server:
     build: ./server
