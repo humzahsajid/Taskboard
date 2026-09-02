@@ -75,6 +75,9 @@ export default function LoginPage() {
         <p className="mt-4 rounded-md bg-slate-200/60 px-3 py-2 text-center text-xs text-slate-500">
           Demo login is pre-filled: <b>demo@example.com</b> / <b>demo1234</b>
         </p>
+        <p className="mt-3 text-center text-[11px] text-slate-400">
+          Deployed automatically from <code>main</code> via GitHub Actions.
+        </p>
       </div>
     </div>
   );
