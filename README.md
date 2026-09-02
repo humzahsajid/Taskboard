@@ -4,8 +4,12 @@ A full-stack task board app: boards → lists → cards, with drag-and-drop,
 labels, due dates, checklists, comments, assignees, activity history,
 search/filter, and user accounts.
 
-This repository contains **Level 1** of the developer brief: the complete
-application running locally with Docker.
+This repository covers **Level 1** (runs locally with Docker) and **Level 2**
+(deployed to a cloud server with an automated GitHub → server pipeline).
+
+- **Live app:** http://209.38.88.46
+- **Local setup:** sections 1–3 below
+- **Deployment / CI-CD:** section 9
 
 ---
 
@@ -272,10 +276,88 @@ npm run dev                        # app on http://localhost:5173 (proxies /api 
 
 ## 8. Source control
 
-This project uses Git with small, incremental commits. To publish it to GitHub:
+This project uses Git with small, incremental commits, hosted at
+<https://github.com/humzahsajid/Taskboard>.
+
+---
+
+## 9. Level 2 — Cloud deployment & CI/CD
+
+### The live app
+
+**http://209.38.88.46** — log in with `demo@example.com` / `demo1234`.
+
+> It's served over plain HTTP for now (no domain name yet). Locking access
+> down behind a secure tunnel with its own authentication is Level 3.
+
+### Infrastructure
+
+| Piece | What it is |
+| ----- | ---------- |
+| Server | A DigitalOcean Droplet (Ubuntu 24.04, 1 vCPU / 1 GB RAM + 2 GB swap) at `209.38.88.46` |
+| Registry | GitHub Container Registry (`ghcr.io`) holds the built `taskboard-server` and `taskboard-web` images |
+| Runtime | Docker + `docker-compose.prod.yml` on the Droplet — same three containers as local (db + server + web) |
+| Firewall | `ufw` allows only ports 22, 80, 443 |
+| Config | `/opt/taskboard/.env` on the Droplet (generated on first setup, never in Git) |
+
+The Droplet **does not build anything** — it only pulls pre-built images, so the
+1 GB box stays responsive.
+
+### The pipeline (`.github/workflows/deploy.yml`)
+
+Every push to `main` runs:
+
+1. **build** — builds the `server` and `web` Docker images and pushes them to
+   `ghcr.io` tagged with both `latest` and `sha-<commit>`.
+2. **deploy** — SSHes into the Droplet using a dedicated deploy key, runs
+   `git reset --hard origin/main`, then
+   [`deploy/remote-update.sh`](deploy/remote-update.sh): `docker compose pull`
+   the new images, `up -d`, wait for `/api/health`, prune old images.
+3. **verify** — the workflow curls `http://209.38.88.46/api/health` from GitHub
+   and fails the run if it isn't `200`.
+
+Database migrations run automatically inside the server container on startup
+(`prisma migrate deploy`), so schema changes ship with the code.
+
+A separate lightweight **CI** workflow (`.github/workflows/ci.yml`) type-checks
+the backend and builds the frontend on pull requests.
+
+### GitHub repository secrets used
+
+| Secret | Value |
+| ------ | ----- |
+| `DEPLOY_SSH_KEY` | Private half of the passphrase-free deploy key |
+| `DEPLOY_HOST` | `209.38.88.46` |
+| `DEPLOY_USER` | `root` |
+| `DEPLOY_KNOWN_HOSTS` | The Droplet's SSH host keys (pins the host, prevents MITM) |
+
+`GITHUB_TOKEN` (built in) is what pushes/pulls the container images — no
+long-lived registry token is stored.
+
+### Deploy a change
+
+Just push to `main` (or edit a file on github.com). Watch it at
+**Actions → Build & Deploy**. Or trigger a redeploy of the current commit with
+**Actions → Build & Deploy → Run workflow**.
+
+### One-time server setup (for reference / rebuilding)
+
+Performed once on a fresh Droplet:
 
 ```bash
-# create an empty repo on github.com first (no README), then:
-git remote add origin https://github.com/<your-username>/taskboard.git
-git push -u origin main
+# 2 GB swap, Docker CE + compose plugin, ufw (22/80/443)
+# git clone https://github.com/humzahsajid/Taskboard.git /opt/taskboard
+# create /opt/taskboard/.env  (copy .env.example, set strong JWT_SECRET +
+#   DB password, CLIENT_ORIGIN=http://209.38.88.46, WEB_PORT=80)
+# add the deploy key's PUBLIC half to ~/.ssh/authorized_keys
+```
+
+After that the pipeline owns all further deploys.
+
+### Manual redeploy from the server
+
+```bash
+ssh root@209.38.88.46
+cd /opt/taskboard && git pull
+IMAGE_TAG=latest docker compose -f docker-compose.prod.yml up -d
 ```

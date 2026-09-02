@@ -1,0 +1,56 @@
+# Production stack for the Droplet.
+# Images are built and pushed by GitHub Actions (.github/workflows/deploy.yml)
+# to the GitHub Container Registry; the server only pulls and runs them.
+#
+# Deployed with:
+#   IMAGE_TAG=<git-sha> docker compose -f docker-compose.prod.yml up -d
+# Configuration comes from /opt/taskboard/.env on the server.
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: *default-logging
+
+  server:
+    image: ghcr.io/${GHCR_OWNER:-humzahsajid}/taskboard-server:${IMAGE_TAG:-latest}
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    # No published ports: the API is only reached through the web container.
+    expose:
+      - "4000"
+    logging: *default-logging
+
+  web:
+    image: ghcr.io/${GHCR_OWNER:-humzahsajid}/taskboard-web:${IMAGE_TAG:-latest}
+    restart: always
+    depends_on:
+      - server
+    environment:
+      API_UPSTREAM: server:${PORT:-4000}
+    ports:
+      - "80:80"
+    logging: *default-logging
+
+volumes:
+  postgres-data:
