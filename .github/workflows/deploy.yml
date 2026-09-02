@@ -72,17 +72,15 @@ jobs:
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
             "set -e && cd /opt/taskboard && git fetch --depth 1 origin main && git reset --hard origin/main && IMAGE_TAG='sha-${{ github.sha }}' GH_ACTOR='${{ github.actor }}' GH_TOKEN='${{ secrets.GITHUB_TOKEN }}' bash deploy/remote-update.sh"
 
-      - name: Verify the public URL
+      - name: Verify health on the Droplet
+        # The app is only reachable via the Cloudflare Tunnel now, so we check
+        # /api/health on the Droplet's loopback rather than over the public IP.
         run: |
-          url="http://${{ secrets.DEPLOY_HOST }}/api/health"
-          for i in $(seq 1 24); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' "$url" || true)
-            if [ "$code" = "200" ]; then
-              echo "Healthy:"; curl -s "$url"; echo
-              exit 0
-            fi
-            echo "attempt ${i}: HTTP ${code} — retrying in 5s"
-            sleep 5
-          done
-          echo "::error::Public health check never returned 200"
-          exit 1
+          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            'for i in $(seq 1 24); do
+               code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/health || true)
+               [ "$code" = "200" ] && { echo "healthy"; curl -s http://localhost/api/health; echo; exit 0; }
+               echo "attempt $i: HTTP $code"; sleep 5
+             done
+             echo "health check never returned 200"; exit 1'

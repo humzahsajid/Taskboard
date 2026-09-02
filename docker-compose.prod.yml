@@ -48,8 +48,14 @@ services:
       - server
     environment:
       API_UPSTREAM: server:${PORT:-4000}
+      # Edge HTTP Basic Auth in front of the whole app (Level 3). Set these in
+      # /opt/taskboard/.env. If unset, the app is served without edge auth.
+      EDGE_AUTH_USER: ${EDGE_AUTH_USER:-}
+      EDGE_AUTH_PASSWORD: ${EDGE_AUTH_PASSWORD:-}
+    # Bound to localhost only: the Cloudflare Tunnel (running on the host) is the
+    # sole way in. Nothing is reachable directly on the Droplet's public IP.
     ports:
-      - "80:80"
+      - "127.0.0.1:80:80"
     logging: *default-logging
 
 volumes:

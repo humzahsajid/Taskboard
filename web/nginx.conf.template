@@ -8,6 +8,20 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # Edge authentication (HTTP Basic Auth). /etc/nginx/edge-auth.conf is
+    # generated at container start by 40-edge-auth.sh from EDGE_AUTH_USER /
+    # EDGE_AUTH_PASSWORD — it is either the auth_basic directives, or
+    # "auth_basic off;" when no credentials are configured (e.g. local dev).
+    include /etc/nginx/edge-auth.conf;
+
+    # Health check stays open — used by container monitoring and the deploy
+    # pipeline, exposes nothing sensitive.
+    location = /api/health {
+        auth_basic off;
+        proxy_pass http://${API_UPSTREAM};
+        proxy_set_header Host $host;
+    }
+
     # Don't cache the HTML entry point so new deploys are picked up.
     location = /index.html {
         add_header Cache-Control "no-cache";

@@ -4,12 +4,14 @@ A full-stack task board app: boards → lists → cards, with drag-and-drop,
 labels, due dates, checklists, comments, assignees, activity history,
 search/filter, and user accounts.
 
-This repository covers **Level 1** (runs locally with Docker) and **Level 2**
-(deployed to a cloud server with an automated GitHub → server pipeline).
+This repository covers all three delivery levels:
 
-- **Live app:** http://209.38.88.46
-- **Local setup:** sections 1–3 below
-- **Deployment / CI-CD:** section 9
+- **Level 1** — runs locally with Docker (sections 1–3)
+- **Level 2** — deployed to a cloud server via an automated GitHub → server pipeline (section 9)
+- **Level 3** — reachable only through a Cloudflare Tunnel, behind an authentication gate (section 10)
+
+**Live app:** https://ran-stanford-field-sole.trycloudflare.com — see section 10 for
+the access password and a note about the URL.
 
 ---
 
@@ -285,10 +287,11 @@ This project uses Git with small, incremental commits, hosted at
 
 ### The live app
 
-**http://209.38.88.46** — log in with `demo@example.com` / `demo1234`.
+Reached through the Cloudflare Tunnel — see **section 10** for the URL and the
+access gate. (Before Level 3 it was served directly at `http://209.38.88.46`;
+that is now closed.)
 
-> It's served over plain HTTP for now (no domain name yet). Locking access
-> down behind a secure tunnel with its own authentication is Level 3.
+Application login (once past the gate): `demo@example.com` / `demo1234`.
 
 ### Infrastructure
 
@@ -297,7 +300,7 @@ This project uses Git with small, incremental commits, hosted at
 | Server | A DigitalOcean Droplet (Ubuntu 24.04, 1 vCPU / 1 GB RAM + 2 GB swap) at `209.38.88.46` |
 | Registry | GitHub Container Registry (`ghcr.io`) holds the built `taskboard-server` and `taskboard-web` images |
 | Runtime | Docker + `docker-compose.prod.yml` on the Droplet — same three containers as local (db + server + web) |
-| Firewall | `ufw` allows only ports 22, 80, 443 |
+| Ingress | Cloudflare Tunnel only (section 10). `ufw` allows just port 22; the web container is bound to `127.0.0.1` |
 | Config | `/opt/taskboard/.env` on the Droplet (generated on first setup, never in Git) |
 
 The Droplet **does not build anything** — it only pulls pre-built images, so the
@@ -360,4 +363,87 @@ After that the pipeline owns all further deploys.
 ssh root@209.38.88.46
 cd /opt/taskboard && git pull
 IMAGE_TAG=latest docker compose -f docker-compose.prod.yml up -d
+```
+
+---
+
+## 10. Level 3 — Secure access tunnel
+
+### How to reach the app
+
+**URL:** https://ran-stanford-field-sole.trycloudflare.com
+
+**Access gate (HTTP Basic Auth — a browser prompt appears first):**
+
+| | |
+| --- | --- |
+| Username | `taskboard` |
+| Password | *(sent separately — not committed to the repo)* |
+
+Then the app's own login: `demo@example.com` / `demo1234`.
+
+> **About the URL:** there's no custom domain, so the tunnel uses a free
+> Cloudflare `*.trycloudflare.com` address. It's stable while the connector
+> keeps running but **changes if `cloudflared` restarts** (reboot, update).
+> To get the current one: `journalctl -u cloudflared | grep -oE 'https://[a-z-]+\.trycloudflare\.com' | tail -1` on the Droplet. A permanent URL needs a domain on a Cloudflare zone (then a named tunnel + Cloudflare Access replaces the pieces below).
+
+### How access is secured
+
+```
+Browser ──HTTPS──▶ Cloudflare edge ──outbound tunnel──▶ cloudflared (Droplet)
+                                                          │
+                                                          ▼
+                                             nginx :80 (127.0.0.1 only)
+                                             │  HTTP Basic Auth gate
+                                             ▼
+                                     app  (its own login on top)
+```
+
+| Layer | What it does |
+| ----- | ------------ |
+| **Cloudflare Tunnel** (`cloudflared` systemd service) | Holds an **outbound** QUIC connection to Cloudflare. No inbound port is opened for the app. |
+| **`ufw` on the Droplet** | Allows **only port 22** (SSH). Ports 80/443 are closed — the public IP serves nothing. |
+| **`127.0.0.1:80` bind** | The web container is published only on the Droplet's loopback, so even locally nothing but `cloudflared` can reach it. |
+| **HTTP Basic Auth** (nginx, `web/docker-entrypoint.d/40-edge-auth.sh`) | Username/password prompt in front of the **entire** app — you can't even see the login page without it. `/api/health` is the only exception (monitoring). |
+| **App login** | The existing account system — a second, independent factor. |
+
+Credentials live in `/opt/taskboard/.env` as `EDGE_AUTH_USER` / `EDGE_AUTH_PASSWORD`;
+the nginx entrypoint hashes the password into `/etc/nginx/.htpasswd` at start-up.
+Set neither and the gate is off (local dev default).
+
+### Proof that unauthorised users can't get in
+
+```bash
+# Direct IP — nothing listening any more
+curl -m 5 http://209.38.88.46/            # → connection refused / timeout
+
+# Tunnel URL without credentials
+curl -o /dev/null -w '%{http_code}\n' https://ran-stanford-field-sole.trycloudflare.com/
+# → 401 Unauthorized
+
+# Tunnel URL with credentials
+curl -o /dev/null -w '%{http_code}\n' -u taskboard:<password> https://ran-stanford-field-sole.trycloudflare.com/
+# → 200
+```
+
+### cloudflared setup on the Droplet
+
+Installed from Cloudflare's apt repo; runs as a systemd service:
+
+```
+# /etc/systemd/system/cloudflared.service
+ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel --url http://localhost:80
+Restart=always
+```
+
+`systemctl status cloudflared` shows connection health;
+`journalctl -u cloudflared` shows the current public URL.
+
+### Rotating the access password
+
+```bash
+ssh root@209.38.88.46
+cd /opt/taskboard
+sed -i 's/^EDGE_AUTH_PASSWORD=.*/EDGE_AUTH_PASSWORD=<new-value>/' .env
+docker compose -f docker-compose.prod.yml up -d web
 ```
