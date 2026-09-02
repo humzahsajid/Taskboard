@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { api } from "./api";
 import type { User } from "./types";
 
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   async function refresh() {
     try {
@@ -31,18 +33,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refresh().finally(() => setLoading(false));
   }, []);
 
+  // Any cached data belongs to whoever was signed in before — drop it all
+  // whenever the session changes so the next user starts from a clean slate.
   async function login(email: string, password: string) {
     const { data } = await api.post<{ user: User }>("/auth/login", { email, password });
+    queryClient.clear();
     setUser(data.user);
   }
 
   async function register(email: string, name: string, password: string) {
     const { data } = await api.post<{ user: User }>("/auth/register", { email, name, password });
+    queryClient.clear();
     setUser(data.user);
   }
 
   async function logout() {
     await api.post("/auth/logout");
+    queryClient.clear();
     setUser(null);
   }
 
