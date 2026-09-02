@@ -115,7 +115,7 @@ export function CardModal({
           />
           <div className="max-h-[75vh] overflow-y-auto p-5">
             <p className="mb-4 text-xs text-slate-400">
-              in list <span className="font-medium text-slate-600">{card.list.title}</span> · created{" "}
+              in list <span className="font-medium text-slate-600 dark:text-slate-300">{card.list.title}</span> · created{" "}
               {relativeTime(card.createdAt)}
             </p>
 
@@ -159,7 +159,7 @@ export function CardModal({
                       return (
                         <div key={cl.id}>
                           <div className="mb-1 flex items-center justify-between">
-                            <p className="text-sm font-medium text-slate-700">
+                            <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
                               {cl.title}{" "}
                               <span className="text-xs text-slate-400">
                                 {done}/{cl.items.length}
@@ -172,7 +172,7 @@ export function CardModal({
                               <Trash2 size={14} />
                             </button>
                           </div>
-                          <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                          <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                             <div
                               className="h-full bg-brand-500 transition-all"
                               style={{
@@ -189,11 +189,11 @@ export function CardModal({
                                   onChange={(e) =>
                                     patchItem.mutate({ id: it.id, body: { done: e.target.checked } })
                                   }
-                                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800"
                                 />
                                 <span
                                   className={`flex-1 text-sm ${
-                                    it.done ? "text-slate-400 line-through" : "text-slate-700"
+                                    it.done ? "text-slate-400 line-through dark:text-slate-500" : "text-slate-700 dark:text-slate-200"
                                   }`}
                                 >
                                   {it.text}
@@ -231,10 +231,10 @@ export function CardModal({
                         <Avatar name={c.user.name} color={c.user.avatarColor} />
                         <div className="flex-1">
                           <p className="text-sm">
-                            <span className="font-medium text-slate-800">{c.user.name}</span>{" "}
+                            <span className="font-medium text-slate-800 dark:text-slate-100">{c.user.name}</span>{" "}
                             <span className="text-xs text-slate-400">{relativeTime(c.createdAt)}</span>
                           </p>
-                          <p className="whitespace-pre-wrap text-sm text-slate-700">{c.body}</p>
+                          <p className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">{c.body}</p>
                           {user?.id === c.user.id && (
                             <button
                               className="mt-0.5 text-xs text-slate-400 hover:text-red-600"
@@ -262,7 +262,7 @@ export function CardModal({
                       return (
                         <label
                           key={m.id}
-                          className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-100"
+                          className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
                         >
                           <input
                             type="checkbox"
@@ -271,7 +271,7 @@ export function CardModal({
                             className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
                           />
                           <Avatar name={m.name} color={m.avatarColor} size={22} />
-                          <span className="text-sm text-slate-700">{m.name}</span>
+                          <span className="text-sm text-slate-700 dark:text-slate-200">{m.name}</span>
                         </label>
                       );
                     })}
@@ -287,7 +287,7 @@ export function CardModal({
                         dueDate: e.target.value ? new Date(e.target.value).toISOString() : null,
                       })
                     }
-                    className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:border-brand-500 focus:outline-none"
+                    className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm focus:border-brand-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
                   />
                   {card.dueDate && (
                     <button
@@ -302,10 +302,10 @@ export function CardModal({
                 <Section icon={<Clock size={15} />} title="Activity">
                   <ul className="space-y-2">
                     {activityQuery.data?.map((a) => (
-                      <li key={a.id} className="flex gap-2 text-xs text-slate-500">
+                      <li key={a.id} className="flex gap-2 text-xs text-slate-500 dark:text-slate-400">
                         <Avatar name={a.user.name} color={a.user.avatarColor} size={18} />
                         <span>
-                          <span className="font-medium text-slate-700">{a.user.name}</span>{" "}
+                          <span className="font-medium text-slate-700 dark:text-slate-200">{a.user.name}</span>{" "}
                           {activityText(a.type, a.data)}
                           <span className="block text-[11px] text-slate-400">
                             {relativeTime(a.createdAt)}
@@ -319,7 +319,7 @@ export function CardModal({
                   </ul>
                 </Section>
 
-                <div className="space-y-2 border-t border-slate-200 pt-4">
+                <div className="space-y-2 border-t border-slate-200 pt-4 dark:border-slate-700">
                   <Button
                     variant="secondary"
                     size="sm"
@@ -359,7 +359,7 @@ function Section({
 }) {
   return (
     <div>
-      <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-600">
+      <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300">
         {icon} {title}
       </h3>
       {children}
@@ -379,7 +379,7 @@ function CardTitleEditor({ card, onSave }: { card: CardDetail; onSave: (t: strin
         if (t && t !== card.title) onSave(t);
         else setValue(card.title);
       }}
-      className="w-full rounded border border-transparent bg-transparent px-1 py-0.5 text-lg font-semibold hover:border-slate-300 focus:border-brand-500 focus:bg-white focus:outline-none"
+      className="w-full rounded border border-transparent bg-transparent px-1 py-0.5 text-lg font-semibold text-slate-900 hover:border-slate-300 focus:border-brand-500 focus:bg-white focus:outline-none dark:text-slate-100 dark:hover:border-slate-600 dark:focus:bg-slate-800"
     />
   );
 }
@@ -393,7 +393,7 @@ function DescriptionEditor({ value, onSave }: { value: string; onSave: (v: strin
     return (
       <button
         onClick={() => setEditing(true)}
-        className="block w-full whitespace-pre-wrap rounded-md border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-700 hover:border-slate-300"
+        className="block w-full whitespace-pre-wrap rounded-md border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-slate-600"
       >
         {value || <span className="text-slate-400">Add a more detailed description…</span>}
       </button>
@@ -442,7 +442,7 @@ function AddInline({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="mt-1 flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700"
+        className="mt-1 flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
       >
         <Plus size={13} /> {buttonLabel}
       </button>
@@ -465,7 +465,7 @@ function AddInline({
         onChange={(e) => setText(e.target.value)}
         onBlur={() => setOpen(false)}
         placeholder={placeholder}
-        className="flex-1 rounded border border-slate-300 px-2 py-1 text-sm focus:border-brand-500 focus:outline-none"
+        className="flex-1 rounded border border-slate-300 bg-white px-2 py-1 text-sm focus:border-brand-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
       />
       <Button size="sm" type="submit">
         Add

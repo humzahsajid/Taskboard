@@ -34,14 +34,14 @@ export function FilterBar({
           value={filters.q}
           onChange={(e) => set({ q: e.target.value })}
           placeholder="Search cards…"
-          className="w-48 rounded-md border border-slate-300 py-1.5 pl-8 pr-2 text-sm focus:border-brand-500 focus:outline-none"
+          className="w-48 rounded-md border border-slate-300 bg-white py-1.5 pl-8 pr-2 text-sm focus:border-brand-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
         />
       </div>
 
       <select
         value={filters.labelId}
         onChange={(e) => set({ labelId: e.target.value })}
-        className="rounded-md border border-slate-300 py-1.5 pl-2 pr-7 text-sm focus:border-brand-500 focus:outline-none"
+        className="rounded-md border border-slate-300 bg-white py-1.5 pl-2 pr-7 text-sm focus:border-brand-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
       >
         <option value="">Any label</option>
         {board.labels.map((l) => (
@@ -54,7 +54,7 @@ export function FilterBar({
       <select
         value={filters.assigneeId}
         onChange={(e) => set({ assigneeId: e.target.value })}
-        className="rounded-md border border-slate-300 py-1.5 pl-2 pr-7 text-sm focus:border-brand-500 focus:outline-none"
+        className="rounded-md border border-slate-300 bg-white py-1.5 pl-2 pr-7 text-sm focus:border-brand-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
       >
         <option value="">Any assignee</option>
         {board.members.map((m) => (
@@ -67,7 +67,7 @@ export function FilterBar({
       <select
         value={filters.due}
         onChange={(e) => set({ due: e.target.value as Filters["due"] })}
-        className="rounded-md border border-slate-300 py-1.5 pl-2 pr-7 text-sm focus:border-brand-500 focus:outline-none"
+        className="rounded-md border border-slate-300 bg-white py-1.5 pl-2 pr-7 text-sm focus:border-brand-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
       >
         <option value="">Any due date</option>
         <option value="overdue">Overdue</option>
@@ -79,7 +79,7 @@ export function FilterBar({
       {isFiltering(filters) && (
         <button
           onClick={() => onChange(EMPTY_FILTERS)}
-          className="flex items-center gap-1 rounded-md px-2 py-1.5 text-sm text-slate-500 hover:bg-slate-200"
+          className="flex items-center gap-1 rounded-md px-2 py-1.5 text-sm text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800"
         >
           <X size={14} /> Clear
         </button>

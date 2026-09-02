@@ -4,6 +4,7 @@ import { LayoutGrid } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { errorMessage } from "../lib/api";
 import { Button, Input } from "../components/ui";
+import { ThemeToggle } from "../components/TopBar";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -29,23 +30,30 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-full items-center justify-center px-4 py-12">
+    <div className="relative flex min-h-full items-center justify-center px-4 py-12">
+      <div className="absolute right-3 top-3">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-2">
-          <LayoutGrid className="text-brand-600" size={34} />
-          <h1 className="text-xl font-bold text-slate-800">Create your account</h1>
+          <LayoutGrid className="text-brand-600 dark:text-brand-500" size={34} />
+          <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Create your account</h1>
         </div>
         <form
           onSubmit={onSubmit}
-          className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+          className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800"
         >
-          {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+          {error && (
+            <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
+              {error}
+            </p>
+          )}
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">Full name</span>
+            <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Full name</span>
             <Input value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">Email</span>
+            <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Email</span>
             <Input
               type="email"
               autoComplete="email"
@@ -55,7 +63,7 @@ export default function RegisterPage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">Password</span>
+            <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Password</span>
             <Input
               type="password"
               autoComplete="new-password"
@@ -64,14 +72,14 @@ export default function RegisterPage() {
               required
               minLength={8}
             />
-            <span className="mt-1 block text-xs text-slate-400">At least 8 characters.</span>
+            <span className="mt-1 block text-xs text-slate-400 dark:text-slate-500">At least 8 characters.</span>
           </label>
           <Button type="submit" className="w-full" disabled={busy}>
             {busy ? "Creating…" : "Create account"}
           </Button>
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-slate-500 dark:text-slate-400">
             Already have an account?{" "}
-            <Link to="/login" className="font-medium text-brand-600 hover:underline">
+            <Link to="/login" className="font-medium text-brand-600 hover:underline dark:text-brand-500">
               Sign in
             </Link>
           </p>

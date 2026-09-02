@@ -50,13 +50,13 @@ export function BoardColumn({
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
       className={clsx(
-        "flex max-h-full w-72 shrink-0 flex-col rounded-xl bg-slate-200/70",
+        "flex max-h-full w-72 shrink-0 flex-col rounded-xl bg-slate-200/70 dark:bg-slate-800/70",
         isDragging && "opacity-50",
       )}
     >
       <div className="flex items-center gap-1 px-2 py-2">
         <button
-          className="cursor-grab touch-none rounded p-1 text-slate-400 hover:bg-slate-300/60 active:cursor-grabbing"
+          className="cursor-grab touch-none rounded p-1 text-slate-400 hover:bg-slate-300/60 active:cursor-grabbing dark:hover:bg-slate-700/60"
           {...attributes}
           {...listeners}
           aria-label="Drag list"
@@ -81,12 +81,12 @@ export function BoardColumn({
                 setEditingName(false);
                 setName(list.title);
               }}
-              className="w-full rounded border border-brand-500 bg-white px-1.5 py-0.5 text-sm font-semibold"
+              className="w-full rounded border border-brand-500 bg-white px-1.5 py-0.5 text-sm font-semibold dark:bg-slate-900 dark:text-slate-100"
             />
           </form>
         ) : (
           <button
-            className="flex-1 truncate rounded px-1 py-0.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-300/50"
+            className="flex-1 truncate rounded px-1 py-0.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-300/50 dark:text-slate-200 dark:hover:bg-slate-700/50"
             onClick={() => {
               setName(list.title);
               setEditingName(true);
@@ -95,11 +95,11 @@ export function BoardColumn({
             {list.title}
           </button>
         )}
-        <span className="rounded bg-slate-300/70 px-1.5 text-xs text-slate-600">
+        <span className="rounded bg-slate-300/70 px-1.5 text-xs text-slate-600 dark:bg-slate-700/70 dark:text-slate-300">
           {matchingCardIds ? `${visibleCards.length}/${list.cards.length}` : list.cards.length}
         </span>
         <button
-          className="rounded p-1 text-slate-400 hover:bg-red-100 hover:text-red-600"
+          className="rounded p-1 text-slate-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-500/15 dark:hover:text-red-400"
           title="Delete list"
           onClick={() => {
             if (confirm(`Delete list "${list.title}" and its cards?`)) onDeleteList(list.id);
@@ -119,7 +119,7 @@ export function BoardColumn({
           ))}
         </SortableContext>
         {visibleCards.length === 0 && (
-          <p className="rounded-lg border border-dashed border-slate-300 px-2 py-3 text-center text-xs text-slate-400">
+          <p className="rounded-lg border border-dashed border-slate-300 px-2 py-3 text-center text-xs text-slate-400 dark:border-slate-600 dark:text-slate-500">
             {matchingCardIds ? "No matching cards" : "Drop cards here"}
           </p>
         )}
@@ -139,7 +139,7 @@ export function BoardColumn({
                 }
               }}
               placeholder="Card title…"
-              className="w-full resize-none rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:border-brand-500 focus:outline-none"
+              className="w-full resize-none rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm focus:border-brand-500 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
               rows={2}
             />
             <div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export function BoardColumn({
                   setAdding(false);
                   setNewTitle("");
                 }}
-                className="rounded p-1 text-slate-400 hover:bg-slate-300/50"
+                className="rounded p-1 text-slate-400 hover:bg-slate-300/50 dark:hover:bg-slate-700/50"
               >
                 <X size={16} />
               </button>
@@ -161,7 +161,7 @@ export function BoardColumn({
         ) : (
           <button
             onClick={() => setAdding(true)}
-            className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-slate-500 hover:bg-slate-300/50"
+            className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-slate-500 hover:bg-slate-300/50 dark:text-slate-400 dark:hover:bg-slate-700/50"
           >
             <Plus size={16} /> Add a card
           </button>

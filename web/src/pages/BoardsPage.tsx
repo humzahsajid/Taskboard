@@ -36,7 +36,7 @@ export default function BoardsPage() {
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-slate-800">
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
           {showArchived ? "Archived boards" : "Your boards"}
         </h1>
         <div className="flex gap-2">
@@ -58,14 +58,14 @@ export default function BoardsPage() {
           {boardsQuery.data.map((board) => (
             <div
               key={board.id}
-              className="group relative flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+              className="group relative flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
             >
               <Link to={`/boards/${board.id}`} className="flex-1">
-                <h2 className="font-semibold text-slate-800">{board.title}</h2>
+                <h2 className="font-semibold text-slate-800 dark:text-slate-100">{board.title}</h2>
                 {board.description && (
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-500">{board.description}</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">{board.description}</p>
                 )}
-                <div className="mt-3 flex items-center gap-3 text-xs text-slate-400">
+                <div className="mt-3 flex items-center gap-3 text-xs text-slate-400 dark:text-slate-500">
                   <span>{board.listCount} lists</span>
                   <span className="flex items-center gap-1">
                     <Users size={12} /> {board.memberCount}
@@ -73,15 +73,15 @@ export default function BoardsPage() {
                   <span>· updated {relativeTime(board.updatedAt)}</span>
                 </div>
               </Link>
-              <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
-                <div className="flex items-center gap-2 text-xs text-slate-500">
+              <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-700">
+                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                   <Avatar name={board.owner.name} color={board.owner.avatarColor} size={22} />
                   {board.isOwner ? "You own this" : `${board.owner.name}'s board`}
                 </div>
                 <div className="flex gap-1 opacity-0 transition group-hover:opacity-100">
                   <button
                     title={board.archived ? "Restore" : "Archive"}
-                    className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                    className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-200"
                     onClick={() => archiveMutation.mutate(board)}
                   >
                     {board.archived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
@@ -89,7 +89,7 @@ export default function BoardsPage() {
                   {board.isOwner && (
                     <button
                       title="Delete permanently"
-                      className="rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                      className="rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
                       onClick={() => {
                         if (confirm(`Delete "${board.title}" and everything in it? This cannot be undone.`))
                           deleteMutation.mutate(board.id);
@@ -104,8 +104,8 @@ export default function BoardsPage() {
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
-          <p className="text-slate-500">
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-700 dark:bg-slate-800">
+          <p className="text-slate-500 dark:text-slate-400">
             {showArchived ? "No archived boards." : "No boards yet — create your first one."}
           </p>
           {!showArchived && (
@@ -161,16 +161,22 @@ function CreateBoardModal({
     <Modal open={open} onClose={onClose}>
       <ModalHeader title="Create a board" onClose={onClose} />
       <form onSubmit={submit} className="space-y-4 p-5">
-        {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && (
+          <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400">
+            {error}
+          </p>
+        )}
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-slate-700">Board title</span>
+          <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Board title</span>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} required autoFocus />
         </label>
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-slate-700">Description (optional)</span>
+          <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Description (optional)
+          </span>
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
         </label>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-400 dark:text-slate-500">
           New boards start with “To Do / In Progress / Done” lists and a set of labels.
         </p>
         <div className="flex justify-end gap-2">

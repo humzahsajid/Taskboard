@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <meta name="theme-color" content="#0f172a" />
     <title>TaskBoard</title>
+    <script>
+      // Apply the saved / OS theme before first paint to avoid a flash.
+      (function () {
+        try {
+          var saved = localStorage.getItem("taskboard-theme");
+          var dark =
+            saved === "dark" ||
+            (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) {
+            document.documentElement.classList.add("dark");
+            document.documentElement.style.colorScheme = "dark";
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

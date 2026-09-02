@@ -228,9 +228,9 @@ export default function BoardPage() {
   if (boardQuery.isLoading) return <Spinner label="Loading board…" />;
   if (boardQuery.isError || !boardQuery.data)
     return (
-      <div className="p-10 text-center text-slate-500">
+      <div className="p-10 text-center text-slate-500 dark:text-slate-400">
         Could not load this board.{" "}
-        <Link to="/" className="text-brand-600 hover:underline">
+        <Link to="/" className="text-brand-600 hover:underline dark:text-brand-500">
           Back to boards
         </Link>
       </div>
@@ -241,14 +241,14 @@ export default function BoardPage() {
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
       {/* Board header */}
-      <div className="border-b border-slate-200 bg-white px-4 py-3">
+      <div className="border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <Link to="/" className="text-sm text-brand-600 hover:underline">
+          <Link to="/" className="text-sm text-brand-600 hover:underline dark:text-brand-500">
             ← Boards
           </Link>
           <BoardTitle board={board} onSave={(title) => patchBoard.mutate({ title })} />
           {board.archived && (
-            <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+            <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-500/15 dark:text-amber-400">
               Archived
             </span>
           )}
@@ -266,7 +266,10 @@ export default function BoardPage() {
           </div>
         </div>
         {error && (
-          <p className="mb-2 rounded bg-red-50 px-3 py-1.5 text-sm text-red-700" onClick={() => setError("")}>
+          <p
+            className="mb-2 rounded bg-red-50 px-3 py-1.5 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-400"
+            onClick={() => setError("")}
+          >
             {error} (click to dismiss)
           </p>
         )}
@@ -274,7 +277,7 @@ export default function BoardPage() {
       </div>
 
       {/* Board body */}
-      <div className="scrollbar-thin flex-1 overflow-x-auto bg-slate-100 p-4">
+      <div className="scrollbar-thin flex-1 overflow-x-auto bg-slate-100 p-4 dark:bg-slate-950">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -306,7 +309,7 @@ export default function BoardPage() {
                 <CardCardContent card={activeCard} />
               </div>
             ) : activeListId ? (
-              <div className="w-72 rounded-xl bg-slate-200 p-2 text-sm font-semibold text-slate-600 shadow-lg">
+              <div className="w-72 rounded-xl bg-slate-200 p-2 text-sm font-semibold text-slate-600 shadow-lg dark:bg-slate-800 dark:text-slate-300">
                 {columns.find((c) => c.id === activeListId)?.title}
               </div>
             ) : null}
@@ -341,14 +344,14 @@ function BoardTitle({ board, onSave }: { board: BoardDetail; onSave: (t: string)
           else setValue(board.title);
           setEditing(false);
         }}
-        className="rounded border border-brand-500 px-1.5 py-0.5 text-lg font-bold"
+        className="rounded border border-brand-500 bg-white px-1.5 py-0.5 text-lg font-bold dark:bg-slate-800 dark:text-slate-100"
       />
     );
   }
   return (
     <button
       onClick={() => setEditing(true)}
-      className="rounded px-1 py-0.5 text-lg font-bold text-slate-800 hover:bg-slate-100"
+      className="rounded px-1 py-0.5 text-lg font-bold text-slate-800 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"
     >
       {board.title}
     </button>
@@ -362,7 +365,7 @@ function AddListButton({ onAdd }: { onAdd: (title: string) => void }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="flex w-72 shrink-0 items-center gap-1.5 rounded-xl bg-slate-200/60 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200"
+        className="flex w-72 shrink-0 items-center gap-1.5 rounded-xl bg-slate-200/60 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800"
       >
         <Plus size={16} /> Add a list
       </button>
@@ -377,7 +380,7 @@ function AddListButton({ onAdd }: { onAdd: (title: string) => void }) {
         setTitle("");
         setOpen(false);
       }}
-      className="w-72 shrink-0 rounded-xl bg-slate-200 p-2"
+      className="w-72 shrink-0 rounded-xl bg-slate-200 p-2 dark:bg-slate-800"
     >
       <input
         autoFocus
@@ -385,7 +388,7 @@ function AddListButton({ onAdd }: { onAdd: (title: string) => void }) {
         onChange={(e) => setTitle(e.target.value)}
         onBlur={() => setOpen(false)}
         placeholder="List title…"
-        className="mb-2 w-full rounded border border-slate-300 px-2 py-1 text-sm focus:border-brand-500 focus:outline-none"
+        className="mb-2 w-full rounded border border-slate-300 bg-white px-2 py-1 text-sm focus:border-brand-500 focus:outline-none dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
       />
       <Button size="sm" type="submit">
         Add list
