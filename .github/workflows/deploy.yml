@@ -6,6 +6,10 @@ name: Build & Deploy
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+      - ".gitignore"
   workflow_dispatch:
 
 concurrency:

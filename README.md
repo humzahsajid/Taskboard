@@ -426,24 +426,97 @@ curl -o /dev/null -w '%{http_code}\n' -u taskboard:<password> https://ran-stanfo
 # → 200
 ```
 
-### cloudflared setup on the Droplet
+### Tunnel setup — full steps
 
-Installed from Cloudflare's apt repo; runs as a systemd service:
+Done once on the Droplet (all commands as `root`).
 
-```
-# /etc/systemd/system/cloudflared.service
-ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel --url http://localhost:80
-Restart=always
-```
+**1. Create the tunnel (Cloudflare dashboard)**
+Zero Trust → **Networks → Tunnels → Create a tunnel** → *Cloudflared* → name
+it `taskboard-tunnel`. Cloudflare shows a connector install command containing a
+token — copy the token.
 
-`systemctl status cloudflared` shows connection health;
-`journalctl -u cloudflared` shows the current public URL.
+> This project runs the connector in **quick-tunnel mode** (step 3) because
+> there's no domain, so the token/named tunnel isn't used for routing. With a
+> domain you'd instead add a **Public Hostname** (`app.example.com` → `HTTP` →
+> `localhost:80`) and skip the quick-tunnel override.
 
-### Rotating the access password
+**2. Install `cloudflared`**
 
 ```bash
-ssh root@209.38.88.46
-cd /opt/taskboard
-sed -i 's/^EDGE_AUTH_PASSWORD=.*/EDGE_AUTH_PASSWORD=<new-value>/' .env
-docker compose -f docker-compose.prod.yml up -d web
+mkdir -p --mode=0755 /usr/share/keyrings
+curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \
+  > /usr/share/keyrings/cloudflare-main.gpg
+echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' \
+  > /etc/apt/sources.list.d/cloudflared.list
+apt-get update && apt-get install -y cloudflared
 ```
+
+**3. Run it as a service**
+
+```bash
+cat > /etc/systemd/system/cloudflared.service <<'EOF'
+[Unit]
+Description=cloudflared quick tunnel for TaskBoard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel --url http://localhost:80
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable --now cloudflared
+```
+
+**4. Get the public URL** (it's in the startup log)
+
+```bash
+journalctl -u cloudflared | grep -oE 'https://[a-z-]+\.trycloudflare\.com' | tail -1
+```
+
+**5. Lock the Droplet down** so the tunnel is the only way in
+
+```bash
+# In /opt/taskboard/.env
+EDGE_AUTH_USER=taskboard
+EDGE_AUTH_PASSWORD=<a strong secret>
+COOKIE_SECURE=true
+
+# Close the public web ports (cloudflared is outbound, so it's unaffected)
+ufw delete allow 80/tcp
+ufw delete allow 443/tcp
+ufw status            # -> only 22/tcp remains
+
+# Redeploy so the web container picks up the Basic Auth creds and the
+# 127.0.0.1-only port bind from docker-compose.prod.yml
+cd /opt/taskboard && docker compose -f docker-compose.prod.yml up -d
+```
+
+`systemctl status cloudflared` shows connection health at any time.
+
+### Managing access
+
+| Task | How |
+| ---- | --- |
+| **Who can reach the app** | Anyone with the current `*.trycloudflare.com` URL **and** the Basic Auth username/password. Without both, they get `401` and never see the app. |
+| **Grant access** | Share the URL + the `EDGE_AUTH_USER` / `EDGE_AUTH_PASSWORD` values. |
+| **Revoke everyone** | Rotate the password (below) — every existing session must re-authenticate. |
+| **Rotate the password** | `ssh root@209.38.88.46`, then:<br>`cd /opt/taskboard`<br>`sed -i 's/^EDGE_AUTH_PASSWORD=.*/EDGE_AUTH_PASSWORD=<new>/' .env`<br>`docker compose -f docker-compose.prod.yml up -d web` |
+| **Kill the tunnel entirely** | `systemctl stop cloudflared` on the Droplet — the app becomes unreachable from anywhere (port 80/443 are already closed). |
+| **App-level accounts** | Managed in-app: register on the login page, or an existing user changes their own password under **Account settings**. This is the second, independent auth layer. |
+| **SSH access** | Key-only (`PasswordAuthentication no`). Two keys are authorised on `root`: the operator's personal key and the CI deploy key (`taskboard-github-actions-deploy`). Remove a line from `/root/.ssh/authorized_keys` to revoke. |
+
+### Upgrading to a stable URL + Cloudflare Access (needs a domain)
+
+1. Add a domain to your Cloudflare account (~$10/yr via Cloudflare Registrar).
+2. Tunnel → **Public Hostname**: `app.<domain>` → `HTTP` → `localhost:80`.
+3. Revert the systemd unit to the token form: `ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel run --token <TOKEN>`.
+4. Zero Trust → **Access → Applications** → add a self-hosted app for
+   `app.<domain>` with a policy (e.g. *emails ending in @yourteam.com*, or a
+   one-time-PIN list). This replaces the nginx Basic Auth layer — you can then
+   remove `EDGE_AUTH_USER` / `EDGE_AUTH_PASSWORD`.
