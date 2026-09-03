@@ -29,7 +29,7 @@ export function TopBar() {
       <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between px-3 sm:px-5">
         <Link to="/" className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-100">
           <LayoutGrid className="text-brand-600 dark:text-brand-500" size={22} />
-          <span>TaskBoard</span>
+          <span>Trello Copy</span>
         </Link>
 
         <div className="flex items-center gap-1">
